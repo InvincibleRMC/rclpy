@@ -22,7 +22,6 @@ from typing import List
 from typing import Optional
 from typing import overload
 from typing import Tuple
-from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
 
@@ -33,28 +32,23 @@ import yaml
 
 PARAMETER_SEPARATOR_STRING = '.'
 
-if TYPE_CHECKING:
-    # Mypy does not handle string literals of array.array[int/str/float] very well
-    # So if user has newer version of python can use proper array types.
-    if sys.version_info > (3, 9):
-        AllowableParameterValue = Union[None, bool, int, float, str,
-                                        list[bytes], Tuple[bytes, ...],
-                                        list[bool], Tuple[bool, ...],
-                                        list[int], Tuple[int, ...], array.array[int],
-                                        list[float], Tuple[float, ...], array.array[float],
-                                        list[str], Tuple[str, ...], array.array[str]]
-    else:
-        AllowableParameterValue = Union[None, bool, int, float, str,
-                                        List[bytes], Tuple[bytes, ...],
-                                        List[bool], Tuple[bool, ...],
-                                        List[int], Tuple[int, ...], 'array.array[int]',
-                                        List[float], Tuple[float, ...], 'array.array[float]',
-                                        List[str], Tuple[str, ...], 'array.array[str]']
-
+# Mypy does not handle string literals of array.array[int/str/float] very well
+# So if user has newer version of python can use proper array types.
+if sys.version_info > (3, 9):
+    AllowableParameterValue = Union[None, bool, int, float, str,
+                                    list[bytes], Tuple[bytes, ...],
+                                    list[bool], Tuple[bool, ...],
+                                    list[int], Tuple[int, ...], array.array[int],
+                                    list[float], Tuple[float, ...], array.array[float],
+                                    list[str], Tuple[str, ...], array.array[str]]
 else:
-    # Done to prevent runtime errors of undefined values.
-    # after python3.13 is minimum support this could be removed.
-    AllowableParameterValue = Any
+    AllowableParameterValue = Union[None, bool, int, float, str,
+                                    List[bytes], Tuple[bytes, ...],
+                                    List[bool], Tuple[bool, ...],
+                                    List[int], Tuple[int, ...], 'array.array[int]',
+                                    List[float], Tuple[float, ...], 'array.array[float]',
+                                    List[str], Tuple[str, ...], 'array.array[str]']
+
 
 AllowableParameterValueT = TypeVar('AllowableParameterValueT',
                                    bound=AllowableParameterValue)
@@ -76,7 +70,7 @@ class Parameter(Generic[AllowableParameterValueT]):
 
         @classmethod
         def from_parameter_value(cls,
-                                 parameter_value: AllowableParameterValueT
+                                 parameter_value: AllowableParameterValue
                                  ) -> 'Parameter.Type':
             """
             Get a Parameter.Type from a given variable.
@@ -142,7 +136,7 @@ class Parameter(Generic[AllowableParameterValueT]):
             return False
 
     @classmethod
-    def from_parameter_msg(cls, param_msg: ParameterMsg) -> 'Parameter[AllowableParameterValueT]':
+    def from_parameter_msg(cls, param_msg: ParameterMsg) -> 'Parameter[Any]':
         value = None
         type_ = Parameter.Type(value=param_msg.value.type)
         if Parameter.Type.BOOL == type_:
@@ -166,7 +160,8 @@ class Parameter(Generic[AllowableParameterValueT]):
         return cls(param_msg.name, type_, value)
 
     @overload
-    def __init__(self, name: str, type_: Optional['Parameter.Type'] = None) -> None: ...
+    def __init__(self, name: str, type_: Optional['Parameter.Type'] = None,
+                 value: None = None) -> None: ...
 
     @overload
     def __init__(self, name: str, type_: 'Parameter.Type',

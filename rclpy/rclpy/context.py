@@ -26,7 +26,7 @@ from typing import Union
 import warnings
 import weakref
 
-from rclpy.impl.implementation_singleton import rclpy_implementation as _rclpy
+from impl.implementation_singleton import rclpy_implementation as _rclpy
 
 if TYPE_CHECKING:
     from rclpy.node import Node
@@ -153,7 +153,8 @@ class Context(ContextManager['Context']):
             if node is not None:
                 node.destroy_node()
 
-        self.__context.shutdown()
+        if self.__context:
+            self.__context.shutdown()
         self._call_on_shutdown_callbacks()
         self._logging_fini()
 

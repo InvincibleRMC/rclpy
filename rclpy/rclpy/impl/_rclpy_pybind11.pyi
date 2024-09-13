@@ -14,10 +14,9 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum
+from enum import Enum
 from types import TracebackType
 from typing import Any, Generic, Literal, overload, Sequence, TypedDict
-
 
 from action_msgs.msg import GoalInfo
 from action_msgs.msg._goal_status_array import GoalStatusArray
@@ -27,8 +26,10 @@ from rclpy.clock_type import ClockType
 from rclpy.duration import Duration
 from rclpy.parameter import Parameter
 from rclpy.subscription import MessageInfo
-from type_support import (MsgT, Action, GoalT, ResultT, FeedbackT, SendGoalServiceResponse,
-                          GetResultServiceResponse, FeedbackMessage, SendGoalServiceRequest, GetResultServiceRequest)
+from rclpy.type_support import (Action, FeedbackMessage, FeedbackT, GetResultServiceRequest,
+                                GetResultServiceResponse, GoalT, MsgT, ResultT,
+                                SendGoalServiceRequest, SendGoalServiceResponse)
+from type_description_interfaces.srv import GetTypeDescription
 
 
 def rclpy_remove_ros_args(pycli_args: Sequence[str]) -> list[str]:
@@ -106,31 +107,33 @@ class rcl_duration_t:
     nanoseconds: int
 
 
-class rcl_subscription_event_type_t(IntEnum):
-    RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED: int
-    RCL_SUBSCRIPTION_LIVELINESS_CHANGED: int
-    RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS: int
-    RCL_SUBSCRIPTION_MESSAGE_LOST: int
-    RCL_SUBSCRIPTION_INCOMPATIBLE_TYPE: int
-    RCL_SUBSCRIPTION_MATCHED: int
+class rcl_subscription_event_type_t(Enum):
+    _value_: int
+    RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED = ...
+    RCL_SUBSCRIPTION_LIVELINESS_CHANGED = ...
+    RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS = ...
+    RCL_SUBSCRIPTION_MESSAGE_LOST = ...
+    RCL_SUBSCRIPTION_INCOMPATIBLE_TYPE = ...
+    RCL_SUBSCRIPTION_MATCHED = ...
 
 
-class rcl_publisher_event_type_t(IntEnum):
-    RCL_PUBLISHER_OFFERED_DEADLINE_MISSED: int
-    RCL_PUBLISHER_LIVELINESS_LOST: int
-    RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS: int
-    RCL_PUBLISHER_INCOMPATIBLE_TYPE: int
-    RCL_PUBLISHER_MATCHED: int
+class rcl_publisher_event_type_t(Enum):
+    _value_: int
+    RCL_PUBLISHER_OFFERED_DEADLINE_MISSED = ...
+    RCL_PUBLISHER_LIVELINESS_LOST = ...
+    RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS = ...
+    RCL_PUBLISHER_INCOMPATIBLE_TYPE = ...
+    RCL_PUBLISHER_MATCHED = ...
 
 
 class EventHandle(Destroyable):
 
     @overload
-    def __init__(self, subcription: Subscription,
+    def __init__(self, subcription: Subscription[Any],
                  event_type: rcl_subscription_event_type_t) -> None: ...
 
     @overload
-    def __init__(self, publisher: Publisher, event_type: rcl_publisher_event_type_t) -> None: ...
+    def __init__(self, publisher: Publisher[Any], event_type: rcl_publisher_event_type_t) -> None: ...
 
     @property
     def pointer(self) -> int:
@@ -232,7 +235,7 @@ class Node(Destroyable):
     def get_action_names_and_types(self) -> list[tuple[str, list[str]]]:
         """Get action names and types."""
 
-    def get_parameters(self, pyparamter_cls: type[Parameter]) -> dict[str, Parameter]:
+    def get_parameters(self, pyparamter_cls: type[Parameter[Any]]) -> dict[str, Parameter[Any]]:
         """Get a list of parameters for the current node."""
 
 
@@ -475,7 +478,7 @@ class ActionClient(Generic[GoalT, ResultT, FeedbackT], Destroyable):
     def take_cancel_response(self, pymsg_type: type[CancelGoal.Response]
                              ) -> tuple[int, CancelGoal.Response] | tuple[None, None]:
         """Take an action cancel response."""
-    
+
     def take_feedback(self, pymsg_type: type[FeedbackMessage[FeedbackT]]
                       ) -> FeedbackMessage[FeedbackT] | None:
         """Take a feedback message from a given action client."""
@@ -485,16 +488,18 @@ class ActionClient(Generic[GoalT, ResultT, FeedbackT], Destroyable):
 
     def send_goal_request(self: SendGoalServiceRequest[GoalT]) -> int:
         """Send an action goal request."""
-    
-    def take_result_response(self, pymsg_type: type[GetResultServiceResponse[ResultT]]
-                             ) -> tuple[int, GetResultServiceResponse[ResultT]] | tuple[None, None]:
+
+    def take_result_response(
+        self,
+        pymsg_type: type[GetResultServiceResponse[ResultT]]
+    ) -> tuple[int, GetResultServiceResponse[ResultT]] | tuple[None, None]:
         """Take an action result response."""
 
     def get_num_entities(self) -> tuple[int, int, int, int, int]:
         """Get the number of wait set entities that make up an action entity."""
 
     def is_action_server_available(self) -> bool:
-        """Check if an action server is available for the given action client."""   
+        """Check if an action server is available for the given action client."""
 
     def add_to_waitset(self, waitset: WaitSet) -> None:
         """Add an action entity to a wait set."""
@@ -584,7 +589,7 @@ class ActionServer(Generic[GoalT, ResultT, FeedbackT], Destroyable):
         pymsg: FeedbackMessage[FeedbackT]
     ) -> None:
         """Publish a feedback message from a given action server."""
-    
+
     def publish_status(self) -> None:
         """Publish a status message from a given action server."""
 
@@ -599,7 +604,7 @@ class ActionServer(Generic[GoalT, ResultT, FeedbackT], Destroyable):
         pycancel_request: CancelGoal.Request,
         pycancel_response_tpye: type[CancelGoal.Response]
     ) -> CancelGoal.Response:
-        """Process a cancel request"""
+        """Process a cancel request."""
 
     def expire_goals(self, max_num_goals: int) -> tuple[GoalInfo, ...]:
         """Expired goals."""
@@ -671,3 +676,18 @@ def get_current_signal_handlers_options() -> SignalHandlerOptions:
 
 def uninstall_signal_handlers() -> None:
     """Uninstall rclpy signal handlers."""
+
+
+class TypeDescriptionService(Destroyable):
+
+    @property
+    def impl(self) -> Service:
+        """Get the rcl service wrapper capsule."""
+
+    def handle_request(
+        self,
+        pyrequest: GetTypeDescription.Request,
+        pyresponse_type: type[GetTypeDescription.Response],
+        node: Node
+    ) -> GetTypeDescription.Response:
+        """Handle an incoming request by calling RCL implementation."""

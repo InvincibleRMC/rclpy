@@ -220,7 +220,7 @@ class Task(Future[T]):
         # Arguments passed into the function
         if args is None:
             args = []
-        self._args: Optional[List[object]] = args
+        self._args: Optional[Iterable[object]] = args
         if kwargs is None:
             kwargs = {}
         self._kwargs: Optional[Dict[str, object]] = kwargs

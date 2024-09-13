@@ -14,7 +14,6 @@
 
 from typing import Any, ClassVar, Iterable, Optional, Protocol, Type, TYPE_CHECKING, TypeVar, Union
 
-
 from action_msgs.msg._goal_status_array import GoalStatusArray
 from action_msgs.srv._cancel_goal import CancelGoal
 from builtin_interfaces.msg import Time
@@ -62,7 +61,7 @@ class Msg(Protocol, metaclass=MsgMetaClass):
     pass
 
 
-MsgT = TypeVar('MsgT', bound=Msg, contravariant=True)
+MsgT = TypeVar('MsgT', bound=Msg)
 
 SrvRequestT = TypeVar('SrvRequestT', bound=Msg)
 SrvResponseT = TypeVar('SrvResponseT', bound=Msg)

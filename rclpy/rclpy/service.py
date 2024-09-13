@@ -35,7 +35,7 @@ SrvTypeResponse = TypeVar('SrvTypeResponse')
 class Service(Generic[SrvRequestT, SrvResponseT]):
     def __init__(
         self,
-        service_impl: _rclpy.Service,
+        service_impl: '_rclpy.Service',
         srv_type: Type[Srv[SrvRequestT, SrvResponseT]],
         srv_name: str,
         callback: Callable[[SrvRequestT, SrvResponseT], SrvResponseT],
@@ -104,7 +104,7 @@ class Service(Generic[SrvRequestT, SrvResponseT]):
                                                    introspection_state)
 
     @property
-    def handle(self):
+    def handle(self) -> '_rclpy.Service':
         return self.__service
 
     @property
