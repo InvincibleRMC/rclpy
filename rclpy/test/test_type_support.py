@@ -25,7 +25,7 @@ class MockTypeMetaclass(type):
     _TYPE_SUPPORT = None
 
     @classmethod
-    def __import_type_support__(cls):
+    def __import_type_support__(cls) -> None:
         pass
 
 
@@ -33,7 +33,7 @@ class MockType(metaclass=MockTypeMetaclass):
     pass
 
 
-def test_check_for_type_support():
+def test_check_for_type_support() -> None:
     type_support.check_for_type_support(Strings)
     type_support.check_for_type_support(Empty)
     with pytest.raises(AttributeError):
@@ -42,13 +42,13 @@ def test_check_for_type_support():
         type_support.check_for_type_support(MockType)
 
 
-def test_check_valid_msg_type():
+def test_check_valid_msg_type() -> None:
     type_support.check_is_valid_msg_type(Strings)
     with pytest.raises(RuntimeError):
         type_support.check_is_valid_msg_type(Empty)
 
 
-def test_check_valid_srv_type():
+def test_check_valid_srv_type() -> None:
     type_support.check_is_valid_srv_type(Empty)
     with pytest.raises(RuntimeError):
         type_support.check_is_valid_srv_type(Strings)

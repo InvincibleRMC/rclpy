@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import ModuleType
 import importlib
 import sys
 
@@ -24,7 +25,7 @@ import rpyutils  # noqa
 import test_rclpy  # noqa
 
 
-def _custom_import(name, package):
+def _custom_import(name: str, package: str) -> ModuleType:
     # Since Python 3.8, on Windows we should ensure DLL directories are explicitly added
     # to the search path.
     # See https://docs.python.org/3/whatsnew/3.8.html#bpo-36085-whatsnew
