@@ -40,7 +40,7 @@ class Client(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
     def __init__(
         self,
         context: Context,
-        client_impl: _rclpy.Client,
+        client_impl: '_rclpy.Client[SrvRequestT, SrvResponseT, SrvEventT]',
         srv_type: Type[Srv[SrvRequestT, SrvResponseT, SrvEventT]],
         srv_name: str,
         qos_profile: QoSProfile,
@@ -85,10 +85,11 @@ class Client(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
 
         :param request: The service request.
         :param timeout_sec: Seconds to wait. If ``None``, then wait forever.
-        :return: The service response, or None if timed out.
+        :return: The service response.
         :raises: TypeError if the type of the passed request isn't an instance
           of the Request type of the provided service when the client was
           constructed.
+        :raises: TimeoutError if the response is not available within the timeout.
         """
         if not isinstance(request, self.srv_type.Request):
             raise TypeError()
@@ -109,6 +110,7 @@ class Client(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
             if not event.wait(timeout_sec):
                 # Timed out. remove_pending_request() to free resources
                 self.remove_pending_request(future)
+                raise TimeoutError()
 
         exception = future.exception()
         if exception is not None:
@@ -214,7 +216,7 @@ class Client(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
                                                   introspection_state)
 
     @property
-    def handle(self):
+    def handle(self) -> '_rclpy.Client[SrvRequestT, SrvResponseT, SrvEventT]':
         return self.__client
 
     @property
