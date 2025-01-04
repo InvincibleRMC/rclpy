@@ -14,16 +14,20 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum
+from enum import Enum
 from types import TracebackType
-from typing import Any, Generic, Literal, overload, Sequence, TypeAlias, TypedDict
+from typing import Any, Generic, Literal, overload, Sequence, TypeAlias, TypedDict, TypeVar
 
 from rclpy.clock import JumpHandle
 from rclpy.clock_type import ClockType
 from rclpy.duration import Duration
+from rclpy.impl import service_introspection
 from rclpy.parameter import Parameter
 from rclpy.subscription import MessageInfo
-from rclpy.type_support import MsgT
+from rclpy.type_support import MsgT, Srv, SrvEventT, SrvRequestT, SrvResponseT
+
+
+T = TypeVar('T')
 
 
 def rclpy_remove_ros_args(pycli_args: Sequence[str]) -> list[str]:
@@ -34,13 +38,27 @@ def rclpy_get_rmw_implementation_identifier() -> str:
     """Retrieve the identifier for the active RMW implementation."""
 
 
-class Client:
-    pass
-
-
 class rcl_time_point_t:
     nanoseconds: int
     clock_type: ClockType
+
+
+class rmw_service_info_t:
+
+    @property
+    def source_timestamp(self) -> int: ...
+
+    @property
+    def received_timestamp(self) -> int: ...
+
+    @property
+    def request_id(self) -> rmw_request_id_t: ...
+
+
+class rmw_request_id_t:
+
+    @property
+    def sequence_number(self) -> int: ...
 
 
 class Destroyable:
@@ -52,6 +70,73 @@ class Destroyable:
 
     def destroy_when_not_in_use(self) -> None:
         """Destroy the rcl object as soon as it's not actively being used."""
+
+
+class Client(Destroyable, Generic[SrvRequestT, SrvResponseT, SrvEventT]):
+
+    def __init__(self, node: Node, srv_type: type[Srv[SrvRequestT, SrvResponseT, SrvEventT]],
+                 srv_name: str, pyqos_profile: rmw_qos_profile_t) -> None: ...
+
+    @property
+    def service_name(self) -> str:
+        """Get the name of the service."""
+
+    @property
+    def pointer(self) -> int:
+        """Get the address of the entity as an integer."""
+
+    def send_request(self, pyrequest: SrvRequestT) -> int:
+        """Send a request."""
+
+    def service_server_is_available(self) -> bool:
+        """Return true if the service server is available."""
+
+    def take_response(
+        self, pyresponse_type: type[SrvResponseT]
+    ) -> tuple[rmw_service_info_t, SrvResponseT] | tuple[None, None]:
+        """Take a received response from an earlier request."""
+
+    def configure_introspection(
+        self,
+        clock: Clock,
+        pyqos_service_event_pub: rmw_qos_profile_t,
+        introspection_state: service_introspection.ServiceIntrospectionState
+    ) -> None:
+        """Configure whether introspection is enabled."""
+
+
+class Service(Destroyable, Generic[SrvRequestT, SrvResponseT, SrvEventT]):
+
+    def __init__(self, node: Node, pysrv_type: type[Srv[SrvRequestT, SrvResponseT, SrvEventT]],
+                 name: str, pyqos_profile: rmw_qos_profile_t) -> None: ...
+
+    @property
+    def pointer(self) -> int:
+        """Get the address of the entity as an integer."""
+
+    @property
+    def name(self) -> str:
+        """Get the name of the service."""
+
+    @property
+    def qos(self) -> rmw_qos_profile_dict:
+        """Get the qos profile of the service."""
+
+    def service_send_response(self, pyresponse: SrvResponseT, header: rmw_request_id_t) -> None:
+        """Send a response."""
+
+    def service_take_request(
+        self,
+        pyrequest_type: type[SrvRequestT]
+    ) -> tuple[rmw_service_info_t, SrvRequestT] | tuple[None, None]:
+        """Take a request from a given service."""
+
+    def configure_introspection(
+        self, clock: Clock,
+        pyqos_service_event_pub: rmw_qos_profile_t,
+        introspection_state: service_introspection.ServiceIntrospectionState
+    ) -> None:
+        """Configure whether introspection is enabled."""
 
 
 class Clock(Destroyable):
@@ -120,20 +205,119 @@ class rcl_publisher_event_type_t(Enum):
     RCL_PUBLISHER_MATCHED = ...
 
 
-class EventHandle(Destroyable):
+class rmw_requested_deadline_missed_status_t:
+    total_count: int
+    total_count_change: int
+
+
+class rmw_liveliness_changed_status_t:
+    alive_count: int
+    not_alive_count: int
+    alive_count_change: int
+    not_alive_count_change: int
+
+
+class rmw_message_lost_status_t:
+    total_count: int
+    total_count_change: int
+
+
+class rmw_qos_policy_kind_e(Enum):
+    _value_: int
+    RMW_QOS_POLICY_INVALID = ...
+    RMW_QOS_POLICY_DURABILITY = ...
+    RMW_QOS_POLICY_DEADLINE = ...
+    RMW_QOS_POLICY_LIVELINESS = ...
+    RMW_QOS_POLICY_RELIABILITY = ...
+    RMW_QOS_POLICY_HISTORY = ...
+    RMW_QOS_POLICY_LIFESPAN = ...
+    RMW_QOS_POLICY_DEPTH = ...
+    RMW_QOS_POLICY_LIVELINESS_LEASE_DURATION = ...
+    RMW_QOS_POLICY_AVOID_ROS_NAMESPACE_CONVENTIONS = ...
+
+
+rmw_qos_policy_kind_t = rmw_qos_policy_kind_e
+
+
+class rmw_requested_qos_incompatible_event_status_t:
+    total_count: int
+    total_count_change: int
+    last_policy_kind: rmw_qos_policy_kind_t
+
+
+class rmw_matched_status_s:
+    total_count: int
+    total_count_change: int
+    current_count: int
+    current_count_change: int
+
+
+rmw_matched_status_t = rmw_matched_status_s
+
+
+class rmw_offered_deadline_missed_status_s:
+    total_count: int
+    total_count_change: int
+
+
+rmw_offered_deadline_missed_status_t = rmw_offered_deadline_missed_status_s
+
+
+class rmw_liveliness_lost_status_s:
+    total_count: int
+    total_count_change: int
+
+
+rmw_liveliness_lost_status_t = rmw_liveliness_lost_status_s
+
+
+class rmw_incompatible_type_status_s:
+    total_count: int
+    total_count_change: int
+
+
+rmw_incompatible_type_status_t = rmw_incompatible_type_status_s
+
+
+class rmw_qos_incompatible_event_status_s:
+    total_count: int
+    total_count_change: int
+    last_policy_kind: rmw_qos_policy_kind_t
+
+
+rmw_qos_incompatible_event_status_t = rmw_qos_incompatible_event_status_s
+rmw_offered_qos_incompatible_event_status_t = rmw_qos_incompatible_event_status_t
+
+
+class RCLError(BaseException):
+    def __init__(self, error_text: str) -> None: ...
+
+
+class UnsupportedEventTypeError(RCLError):
+    pass
+
+
+class EventHandle(Destroyable, Generic[T]):
 
     @overload
-    def __init__(self, subcription: Subscription,
-                 event_type: rcl_subscription_event_type_t) -> None: ...
+    def __init__(
+        self,
+        subcription: Subscription[Any],
+        event_type: rcl_subscription_event_type_t
+    ) -> None: ...
 
     @overload
-    def __init__(self, publisher: Publisher, event_type: rcl_publisher_event_type_t) -> None: ...
+    def __init__(
+        self,
+        subcription: Publisher[Any],
+        event_type: rcl_publisher_event_type_t
+    ) -> None: ...
 
     @property
     def pointer(self) -> int:
         """Get the address of the entity as an integer."""
 
-    def take_event(self) -> Any | None:
+    def take_event(self) -> T | None:
         """Get pending data from a ready event."""
 
 
@@ -214,10 +398,6 @@ class GuardCondition(Destroyable):
 
     def trigger_guard_condition(self) -> None:
         """Trigger a general purpose guard condition."""
-
-
-class Service:
-    pass
 
 
 class Subscription(Destroyable, Generic[MsgT]):
@@ -499,7 +679,7 @@ class WaitSet(Destroyable):
     def add_timer(self, timer: Timer) -> int:
         """Add a timer to the wait set structure."""
 
-    def add_event(self, event: EventHandle) -> int:
+    def add_event(self, event: EventHandle[Any]) -> int:
         """Add an event to the wait set structure."""
 
     def is_ready(self, entity_type: IsReadyValues, index: int) -> bool:
@@ -523,7 +703,7 @@ class NodeNameNonExistentError(RCLError):
 class InvalidHandle(RuntimeError):
     pass
 
-  
+
 class SignalHandlerOptions(Enum):
     _value_: int
     NO = ...
