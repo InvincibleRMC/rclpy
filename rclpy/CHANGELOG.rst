@@ -2,6 +2,27 @@
 Changelog for package rclpy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+8.0.0 (2024-12-20)
+------------------
+* Add support for operator overloading of `Duration` (`#1387 <https://github.com/ros2/rclpy/issues/1387>`_)
+* Service/Client Implementation types (`#1384 <https://github.com/ros2/rclpy/issues/1384>`_)
+* avoid lifecycle node transition exception (`#1319 <https://github.com/ros2/rclpy/issues/1319>`_)
+* Client:call generates TimeoutError exception when it is timed out. (`#1271 <https://github.com/ros2/rclpy/issues/1271>`_)
+* Add in python3-dev build dependency. (`#1380 <https://github.com/ros2/rclpy/issues/1380>`_)
+* Contributors: Arjo Chakravarty, Chris Lalancette, Michael Carlstrom, Tomoya Fujita
+
+7.7.0 (2024-11-20)
+------------------
+* Fix the race condition while calling rcl_shutdown (`#1353 <https://github.com/ros2/rclpy/issues/1353>`_)
+* Use @deprecated to mark deprecated APIs for type checkers. (`#1350 <https://github.com/ros2/rclpy/issues/1350>`_)
+* init (`#1358 <https://github.com/ros2/rclpy/issues/1358>`_)
+* Avoid redundant done callbacks of the future while repeatedly calling spin_until_future_complete (`#1374 <https://github.com/ros2/rclpy/issues/1374>`_)
+* Clean qos zenoh tests (`#1369 <https://github.com/ros2/rclpy/issues/1369>`_)
+* adjust warn message that requested goal is already expired. (`#1363 <https://github.com/ros2/rclpy/issues/1363>`_)
+* Adds types to Lifecycle Objects (`#1338 <https://github.com/ros2/rclpy/issues/1338>`_)
+* Remove python_cmake_module use (`#1220 <https://github.com/ros2/rclpy/issues/1220>`_)
+* Contributors: Alejandro Hernández Cordero, Barry Xu, Chris Lalancette, Michael Carlstrom, Tomoya Fujita
+
 7.6.0 (2024-10-03)
 ------------------
 * TestClient.test_service_timestamps failing consistently. (`#1364 <https://github.com/ros2/rclpy/issues/1364>`_)
