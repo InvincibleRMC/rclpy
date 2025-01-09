@@ -25,7 +25,7 @@ from rclpy.clock import Clock
 from rclpy.impl.implementation_singleton import rclpy_implementation as _rclpy
 from rclpy.qos import QoSProfile
 from rclpy.service_introspection import ServiceIntrospectionState
-from rclpy.type_support import Srv, SrvEventT, SrvRequestT, SrvResponseT
+from rclpy.type_support import Srv, SrvRequestT, SrvResponseT
 
 # Used for documentation purposes only
 SrvType = TypeVar('SrvType')
@@ -33,11 +33,11 @@ SrvTypeRequest = TypeVar('SrvTypeRequest')
 SrvTypeResponse = TypeVar('SrvTypeResponse')
 
 
-class Service(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
+class Service(Generic[SrvRequestT, SrvResponseT]):
     def __init__(
         self,
-        service_impl: '_rclpy.Service[SrvRequestT, SrvResponseT, SrvEventT]',
-        srv_type: Type[Srv[SrvRequestT, SrvResponseT, SrvEventT]],
+        service_impl: '_rclpy.Service[SrvRequestT, SrvResponseT]',
+        srv_type: Type[Srv[SrvRequestT, SrvResponseT]],
         srv_name: str,
         callback: Callable[[SrvRequestT, SrvResponseT], SrvResponseT],
         callback_group: CallbackGroup,
@@ -106,7 +106,7 @@ class Service(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
                                                    introspection_state)
 
     @property
-    def handle(self) -> '_rclpy.Service[SrvRequestT, SrvResponseT, SrvEventT]':
+    def handle(self) -> '_rclpy.Service[SrvRequestT, SrvResponseT]':
         return self.__service
 
     @property
@@ -123,7 +123,7 @@ class Service(Generic[SrvRequestT, SrvResponseT, SrvEventT]):
         """
         self.__service.destroy_when_not_in_use()
 
-    def __enter__(self) -> 'Service[SrvRequestT, SrvResponseT, SrvEventT]':
+    def __enter__(self) -> 'Service[SrvRequestT, SrvResponseT]':
         return self
 
     def __exit__(
