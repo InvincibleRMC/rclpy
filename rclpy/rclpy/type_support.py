@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, ClassVar, Iterable, Optional, Protocol, Type, TYPE_CHECKING, TypeVar, Union
+from typing import Any, ClassVar, Iterable, Optional, Protocol, Type, TypeVar, Union
 
 
 from action_msgs.msg._goal_status_array import GoalStatusArray
@@ -20,11 +20,8 @@ from action_msgs.srv._cancel_goal import CancelGoal
 from builtin_interfaces.msg import Time
 from rclpy.exceptions import NoTypeSupportImportedException
 from service_msgs.msg._service_event_info import ServiceEventInfo
+from typing_extensions import TypeAlias
 from unique_identifier_msgs.msg import UUID
-
-
-if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
 
 
 class PyCapsule(Protocol):
