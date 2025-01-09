@@ -97,7 +97,7 @@ class SendGoalServiceResponse(Msg, Protocol):
     stamp: Time
 
 
-SendGoalService: 'TypeAlias' = Srv[SendGoalServiceRequest[GoalT], SendGoalServiceResponse]
+SendGoalService: TypeAlias = Srv[SendGoalServiceRequest[GoalT], SendGoalServiceResponse]
 
 
 class GetResultServiceRequest(Msg, Protocol):
@@ -109,7 +109,7 @@ class GetResultServiceResponse(Msg, Protocol[ResultT]):
     result: ResultT
 
 
-GetResultService: 'TypeAlias' = Srv[GetResultServiceRequest, GetResultServiceResponse[ResultT]]
+GetResultService: TypeAlias = Srv[GetResultServiceRequest, GetResultServiceResponse[ResultT]]
 
 
 class FeedbackMessage(Msg, Protocol[FeedbackT]):
@@ -138,8 +138,8 @@ class Action(Protocol[GoalT,
 
 
 # Can be used if https://github.com/python/typing/issues/548 ever gets approved.
-SrvT = TypeVar('SrvT', bound=Srv)
-ActionT = TypeVar('ActionT', bound=Action)
+SrvT = TypeVar('SrvT', bound=Srv[Any, Any])
+ActionT = TypeVar('ActionT', bound=Action[Any, Any, Any])
 
 
 def check_for_type_support(msg_or_srv_type: Type[Union[Msg, Srv[Any, Any],
